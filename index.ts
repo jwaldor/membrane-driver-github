@@ -108,6 +108,7 @@ function getSearchPageRefs(
 
 export const Root = {
   configure: async (args) => {
+    console.log("viewroot",root.organizations,root.users)
     if (args.token !== state.token) {
       console.log("Creating new Octokit client");
       state.token = args.token;
@@ -123,6 +124,7 @@ export const Root = {
   users: () => ({}),
   search: () => ({}),
   tests: () => ({}),
+  organizations: () => ({}),
   status() {
     if (!state.token) {
       return `Please [Generate API token](https://github.com/settings/tokens/new) and [configure](:configure) it`;
@@ -352,6 +354,169 @@ export const RepositoryCollection = {
       next: getPageRefs(self.search(args), res).next,
     };
   },
+};
+
+export const OrganizationCollection = {
+  async test(args){
+    console.log("test",args)
+    const { name: org } = args;
+    console.log(org)
+    const result = await client().orgs.get({ org:"fractal-bootcamp" });
+    console.log("orgresult",result)
+  },
+  async one(args, { self, info }) {
+    console.log("here",args)
+    const { name: org } = args;
+    // const { name: owner } = self.$argsAt(root.users.one);
+    if (
+      !shouldFetch(info, [
+        "name",
+        "repos",
+      ])
+    ) {
+      return { name: org };
+    }
+    const result = await client().orgs.get({ org });
+    console.log("orgresult",result)
+    return result.data;
+  },
+  async page(args, { self, info }) {
+    console.log("page")
+    const apiArgs = toGithubArgs(args);
+    const res = await client().orgs.list(apiArgs);
+
+    // TODO: Use the GraphQL API to avoid N+1 fetching
+    const includedKeys = [
+      "gref",
+    ];
+    if (shouldFetchItems(info, includedKeys)) {
+      const promises = res.data.map(async (org) => {
+        const res = await client().orgs.get({
+          name: org.login,
+        });
+        return res.data;
+      });
+      res.data = (await Promise.all(promises)) as any;
+    }
+
+    return {
+      items: res.data,
+      next: getPageRefs(self.page(args), res).next,
+    };
+  },
+  // async page(args, { self }) {
+  //   const { name: username } = self.$argsAt(root.users.one);
+
+  //   const apiArgs = toGithubArgs({ ...args, username });
+  //   const res = await client().repos.listForUser(apiArgs);
+
+  //   return {
+  //     items: res.data,
+  //     next: getPageRefs(self.page(args), res).next,
+  //   };
+  // },
+//   async search(args, { self }) {
+//     const { name: username } = self.$argsAt(root.users.one);
+//     const q = (args.q ?? "") + ` user:${username}`;
+
+//     const apiArgs = toGithubArgs({ ...args, q, username });
+//     const res = await client().search.repos(apiArgs);
+
+//     return {
+//       items: res.data.items,
+//       next: getPageRefs(self.search(args), res).next,
+//     };
+//   },
+};
+
+
+
+export const Organization = {
+  gref: (_, { self, obj }) => {
+    console.log(obj)
+    return root.organizations.one({ name: obj.name });
+  },
+  repos: () => ({}),
+  commentCreated: {
+    async subscribe(_, { self }) {
+      const { name: org } = self.$argsAt(root.organizations.one);
+
+      await ensureWebhookOrg(org, "issue_comment");
+    },
+    async unsubscribe(_, { self }) {
+      const { name: org } = self.$argsAt(root.organizations.one);
+
+      await removeWebhookOrg(org, "issue_comment");
+    },
+    reviewRequested: {
+      async subscribe(_, { self }) {
+        const { name: org } = self.$argsAt(root.organizations.one);
+  
+        await ensureWebhookOrg(org, "pull_request");
+      },
+      async unsubscribe(_, { self }) {
+        const { name: org } = self.$argsAt(root.organizations.one);
+  
+        await removeWebhookOrg(org, "pull_request");
+      },
+    },
+  },
+//   issueOpened: {
+//     async subscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await ensureWebhook(owner, repo, "issues");
+//     },
+//     async unsubscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await removeWebhook(owner, repo, "issues");
+//     },
+//   },
+//   pullRequestOpened: {
+//     async subscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await ensureWebhook(owner, repo, "pull_request");
+//     },
+//     async unsubscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await removeWebhook(owner, repo, "pull_request");
+//     },
+//   },
+//   releasePublished: {
+//     async subscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await ensureWebhook(owner, repo, "release");
+//     },
+//     async unsubscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await removeWebhook(owner, repo, "release");
+//     },
+//   },
+//   pushed: {
+//     async subscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await ensureWebhook(owner, repo, "push");
+//     },
+//     async unsubscribe(_, { self }) {
+//       const { name: owner } = self.$argsAt(root.users.one);
+//       const { name: repo } = self.$argsAt(root.users.one.repos.one);
+
+//       await removeWebhook(owner, repo, "push");
+//     },
+//   },
 };
 
 export const Repository = {
@@ -1050,11 +1215,13 @@ export async function endpoint({ path, query, headers, method, body }) {
   switch (path) {
     case "/webhooks": {
       const event = JSON.parse(body);
+      // console.log("evenat",event)
       // Every webhook event has a repository object
       const repo: any = root.users
         .one({ name: event.repository.owner.login })
         .repos.one({ name: event.repository.name });
-
+      const org: any = root.organizations.one({name: event.organization.login});
+      console.log("org",org,event.organization.login)
       if (event.action === "opened" && event.issue) {
         const issue = repo.issues.one({ number: event.issue.number });
         await repo.issueOpened.$emit({ issue });
@@ -1100,6 +1267,29 @@ export async function endpoint({ path, query, headers, method, body }) {
           .commentCreated.$emit({ comment });
         await repo.commentCreated.$emit({ comment });
       }
+      if (event.action === "created" && event.comment) {
+        // const comment = repo.issues
+        //   .one({ number: event.issue.number })
+        //   .comments.one({ id: event.comment.id });
+        // await repo.issues
+        //   .one({ number: event.issue.number })
+        //   .commentCreated.$emit({ comment });
+        console.log("org comment")
+        await org.commentCreated.$emit({ comment:`New comment for comment ${event.organization.login}` });
+        console.log("org comment done")
+      }
+      
+      // if (event.action === "review_requested" && event.pull_request) {
+      //   console.log("review request event",event)
+      //   await repo.reviewRequested.$emit({ event });
+      //   // const comment = repo.issues
+      //   //   .one({ number: event.issue.number })
+      //   //   .comments.one({ id: event.comment.id });
+      //   // await repo.issues
+      //   //   .one({ number: event.issue.number })
+      //   //   .commentCreated.$emit({ comment });
+      //   // await repo.commentCreated.$emit({ comment });
+      // }
       return JSON.stringify({ status: 200 });
     }
     default:
@@ -1191,6 +1381,102 @@ async function removeWebhook(owner: string, repo: string, event: string) {
   } catch (error) {
     throw new Error(
       `Error unregistering ${event} event for ${owner}/${repo}: ${error}`
+    );
+  }
+}
+
+async function ensureWebhookOrg(org:string, event: string) {
+  console.log("ensurewebhookorg",org)
+  const webhookUrl = state.endpointUrl! + "/webhooks";
+  console.log("webhookUrl",webhookUrl)
+  try {
+    // Check if the repository already has a webhook
+    console.log("checking")
+    const test_data = await client().orgs.get({ org });
+    console.log(test_data,"test_data")
+    console.log("checking2")
+    const { data: hooks } = await client().orgs.listWebhooks({ org });
+    console.log("hooks")
+    console.log(hooks)
+    const webhook = hooks.find((hook) => hook.config.url === webhookUrl);
+    // If the repository already has a webhook, update it
+    if (webhook) {
+      if (webhook.events.includes(event)) {
+        console.log("Webhook already exists event", event);
+      } else {
+        const updatedEvents = [...webhook.events, event];
+        await client().repos.updateWebhook({
+          org,
+          hook_id: webhook.id,
+          config: {
+            content_type: "json",
+            url: webhookUrl,
+          },
+          events: updatedEvents,
+        });
+        // Update the events array in the repository object
+        console.log("Webhook updated with new event.");
+      }
+    } else {
+      console.log("creating new webhook")
+      // Create a new webhook
+      const {
+        data: { id: webhookId },
+      } = await client().orgs.createWebhook({
+        org,
+        events: [event],
+        name: "web",
+        config: {
+          content_type: "json",
+          url: webhookUrl,
+        },
+      });
+      console.log("New webhook created.");
+    }
+  } catch (error) {
+    throw new Error(
+      `Error registering ${event} event for ${org}. Details: ${error}`
+    );
+  }
+}
+
+
+async function removeWebhookOrg(org: string, event: string) {
+  const webhookUrl = state.endpointUrl! + "/webhooks";
+  try {
+    // Check if the repository has a webhook
+    const { data: hooks } = await client().orgs.listWebhooks({org });
+    const webhook = hooks.find((hook) => hook.config.url === webhookUrl);
+    // Update the webhook to remove the specified events
+    if (!webhook) {
+      console.log(`Webhook does not exist for $org.`);
+      return;
+    }
+    const updatedEvents = webhook.events.filter((e: string) => e !== event);
+
+    // Delete the webhook if there are no more events
+    if (updatedEvents.length === 0) {
+      await client().repos.deleteWebhook({
+        org,
+        hook_id: webhook.id,
+      });
+      console.log("Webhook deleted.");
+      return;
+    } else {
+      await client().repos.updateWebhook({
+        org,
+        hook_id: webhook.id,
+        config: {
+          content_type: "json",
+          url: state.endpointUrl + "/webhooks",
+        },
+        events: updatedEvents,
+      });
+      console.log(`Event '${event}' removed from webhook.`);
+    }
+  } catch (error) {
+    throw new Error(
+      `Error unregistering ${event} event for ${org}: ${error}`
     );
   }
 }
