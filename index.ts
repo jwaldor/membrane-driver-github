@@ -504,13 +504,9 @@ export const User = {
 
 
 
-const getOwner = (obj) => {
-  //get name of owner. this handles case where owner is user and case where owner is org
-  const { name: owner } = obj.$argsAt(root.users.one);
-  if (!owner){
-    const { name: owner } = obj.$argsAt(root.organizations.one);
-    return owner;
-  }
+// Handles case where owner is user and case where owner is org
+const getOwner = (gref) => {
+  const { name: owner } = gref.$argsAt(root.users.one) ?? gref.$argsAt(root.organizations.one);
   return owner;
 }
 
