@@ -510,7 +510,7 @@ const getOwner = (gref) => {
   return owner;
 }
 
-const getOwnerRef = (owner) => {
+const getOwnerGref = (owner) => {
   return root.users.one({ name: owner })
 }
 
