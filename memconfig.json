@@ -334,12 +334,7 @@
             "description": "The date the user account was last updated"
           }
         ],
-        "events": [
-          {
-            "name": "reviewRequested",
-            "type": "PullRequestReviewRequestEvent"
-          }
-        ],
+        "events": [],
         "description": "Collection of Github users",
         "actions": []
       },
@@ -2356,22 +2351,6 @@
           }
         ],
         "description": "Collection of tests for the Github driver"
-      },
-      {
-        "name": "PullRequestReviewRequestEvent",
-        "events": [],
-        "fields": [
-          {
-            "name": "review_request",
-            "type": "Ref",
-            "ofType": "PullRequest"
-          }
-        ]
-      },
-      {
-        "name": "PullRequestReviewRequest",
-        "events": [],
-        "actions": []
       },
       {
         "name": "Organization",
