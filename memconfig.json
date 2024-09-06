@@ -106,6 +106,10 @@
             "name": "tests",
             "type": "Tests",
             "description": "Tests"
+          },
+          {
+            "name": "organizations",
+            "type": "OrganizationCollection"
           }
         ],
         "actions": [
@@ -330,8 +334,14 @@
             "description": "The date the user account was last updated"
           }
         ],
-        "events": [],
-        "description": "Collection of Github users"
+        "events": [
+          {
+            "name": "reviewRequested",
+            "type": "PullRequestReviewRequestEvent"
+          }
+        ],
+        "description": "Collection of Github users",
+        "actions": []
       },
       {
         "name": "RepositoryCollection",
@@ -2269,7 +2279,8 @@
             "ofType": "PullRequest"
           }
         ],
-        "description": "Type representing a pull request event."
+        "description": "Type representing a pull request event.",
+        "actions": []
       },
       {
         "name": "ReleaseEvent",
@@ -2345,6 +2356,157 @@
           }
         ],
         "description": "Collection of tests for the Github driver"
+      },
+      {
+        "name": "PullRequestReviewRequestEvent",
+        "events": [],
+        "fields": [
+          {
+            "name": "review_request",
+            "type": "Ref",
+            "ofType": "PullRequest"
+          }
+        ]
+      },
+      {
+        "name": "PullRequestReviewRequest",
+        "events": [],
+        "actions": []
+      },
+      {
+        "name": "Organization",
+        "fields": [
+          {
+            "name": "repos",
+            "type": "RepositoryCollection"
+          },
+          {
+            "name": "login",
+            "type": "String",
+            "description": "The organization's login username."
+          },
+          {
+            "name": "id",
+            "type": "Int",
+            "description": "The unique identifier of the organization."
+          },
+          {
+            "name": "node_id",
+            "type": "String",
+            "description": "The node identifier for the organization."
+          },
+          {
+            "name": "url",
+            "type": "String",
+            "description": "The API URL for the organization."
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "description": "The description or bio of the organization."
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "description": "The organization's name."
+          },
+          {
+            "name": "company",
+            "type": "String",
+            "description": "The organization’s company name or affiliation."
+          },
+          {
+            "name": "blog",
+            "type": "String",
+            "description": "The URL to the organization's blog or website."
+          },
+          {
+            "name": "location",
+            "type": "String",
+            "description": "The organization's location."
+          },
+          {
+            "name": "email",
+            "type": "String",
+            "description": "The organization's public email address."
+          },
+          {
+            "name": "is_verified",
+            "type": "Boolean",
+            "description": "Whether the organization is verified by GitHub."
+          },
+          {
+            "name": "followers",
+            "type": "Int",
+            "description": "The number of users following the organization."
+          },
+          {
+            "name": "following",
+            "type": "Int",
+            "description": "The number of users the organization is following."
+          },
+          {
+            "name": "created_at",
+            "type": "String",
+            "description": "The creation date of the organization."
+          },
+          {
+            "name": "updated_at",
+            "type": "String",
+            "description": "The date when the organization's information was last updated."
+          }
+        ],
+        "events": [
+          {
+            "name": "commentCreated",
+            "type": "CommentEvent"
+          }
+        ]
+      },
+      {
+        "name": "OrganizationCollection",
+        "fields": [
+          {
+            "name": "one",
+            "type": "Organization",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
+              }
+            ]
+          },
+          {
+            "name": "page",
+            "type": "OrganizationPage",
+            "params": [
+              {
+                "name": "since",
+                "type": "String",
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "name": "test",
+            "type": "Void",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "blah",
+                "type": "String"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "OrganizationPage"
       }
     ]
   }
