@@ -623,7 +623,7 @@ export const Repository = {
 
 export const IssueCollection = {
   async one(args, { self, info }) {
-    const owner = getOwner(self);
+    const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one({ name: owner }).repos.one);
     const { number: issue_number } = args;
 
