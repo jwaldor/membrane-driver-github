@@ -1174,7 +1174,6 @@ export async function endpoint({ path, query, headers, method, body }) {
       const event = JSON.parse(body);
       // console.log("evenat",event)
       // Every webhook event has a repository object
-      console.log("event.repository.owner.login",event.repository.owner.login)
       const repo: any = root.users
         .one({ name: event.repository.owner.login })
         .repos.one({ name: event.repository.name });
@@ -1224,19 +1223,14 @@ export async function endpoint({ path, query, headers, method, body }) {
       }
 
       if (event.action === "created" && event.comment) {
-        console.log("event.comment.id",event.issue.number,event.comment.id)
         const comment = repo.issues
           .one({ number: event.issue.number })
           .comments.one({ id: event.comment.id });
-        console.log("repo.issues",repo.issues
-          .one({ number: event.issue.number }).body)
-        console.log("repo",repo.name,await repo.name)
         await repo.issues
           .one({ number: event.issue.number })
           .commentCreated.$emit({ comment });
         await repo.commentCreated.$emit({ comment });
 
-        console.log("comment",await comment,comment.body,await comment.body,event.comment)
         await org.commentCreated.$emit({ comment });
       }
       return JSON.stringify({ status: 200 });
