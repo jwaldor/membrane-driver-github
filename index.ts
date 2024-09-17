@@ -108,7 +108,6 @@ function getSearchPageRefs(
 
 export const Root = {
   configure: async (args) => {
-    console.log("viewroot", root.organizations, root.users)
     if (args.token !== state.token) {
       console.log("Creating new Octokit client");
       state.token = args.token;
