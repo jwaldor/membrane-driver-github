@@ -318,9 +318,6 @@ const getOwner = (gref) => {
   return owner;
 }
 
-// const getOwnerGref = (owner) => {
-//   return
-// }
 
 const getRepos = async (obj, args) => {
   if ('name' in obj.$argsAt(root.users.one)) {
