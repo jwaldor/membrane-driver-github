@@ -108,6 +108,7 @@ function getSearchPageRefs(
 
 export const Root = {
   configure: async (args) => {
+    console.log("viewroot", root.organizations, root.users);
     if (args.token !== state.token) {
       console.log("Creating new Octokit client");
       state.token = args.token;
@@ -314,51 +315,42 @@ export const User = {
 
 // Handles case where owner is user and case where owner is org
 const getOwner = (gref) => {
-  const { name: owner } = 'name' in gref.$argsAt(root.users.one) ? gref.$argsAt(root.users.one) : gref.$argsAt(root.organizations.one);
+  const { name: owner } =
+    "name" in gref.$argsAt(root.users.one)
+      ? gref.$argsAt(root.users.one)
+      : gref.$argsAt(root.organizations.one);
   return owner;
-}
+};
 
+// const getOwnerGref = (owner) => {
+//   return
+// }
 
-const getRepos = async (obj, args) => {
-  if ('name' in obj.$argsAt(root.users.one)) {
-    const { name: username } = obj.$argsAt(root.users.one);
-
+const getRepos = async (gref, args) => {
+  if ("name" in gref.$argsAt(root.users.one)) {
+    const { name: username } = gref.$argsAt(root.users.one);
     const apiArgs = toGithubArgs({ ...args, username });
-    const res = await client().repos.listForUser(apiArgs);
-    return res
-
-  }
-  else {
-    const { name: org } = obj.$argsAt(root.organizations.one);
-
+    return await client().repos.listForUser(apiArgs);
+  } else {
+    const { name: org } = gref.$argsAt(root.organizations.one);
     const apiArgs = toGithubArgs({ ...args, org });
-    const res = await client().repos.listForOrg(apiArgs);
-    return res
+    return await client().repos.listForOrg(apiArgs);
   }
-}
+};
 
-const searchRepos = async (obj, args) => {
-  if ('name' in obj.$argsAt(root.users.one)) {
-    const { name: username } = obj.$argsAt(root.users.one);
-
+const searchRepos = async (gref, args) => {
+  if ("name" in gref.$argsAt(root.users.one)) {
+    const { name: username } = gref.$argsAt(root.users.one);
     const q = (args.q ?? "") + ` user:${username}`;
-
     const apiArgs = toGithubArgs({ ...args, q, username });
-    const res = await client().search.repos(apiArgs);
-    return res
-
-  }
-  else {
-    const { name: org } = obj.$argsAt(root.organizations.one);
+    return await client().search.repos(apiArgs);
+  } else {
+    const { name: org } = gref.$argsAt(root.organizations.one);
     const q = (args.q ?? "") + ` user:${org}`;
-
     const apiArgs = toGithubArgs({ ...args, q, org });
-    const res = await client().search.repos(apiArgs);
-    return res
+    return await client().search.repos(apiArgs);
   }
-}
-
-
+};
 
 export const RepositoryCollection = {
   async one(args, { self, info }) {
@@ -400,13 +392,7 @@ export const RepositoryCollection = {
 export const OrganizationCollection = {
   async one(args, { self, info }) {
     const { name: org } = args;
-    // const { name: owner } = self.$argsAt(root.users.one);
-    if (
-      !shouldFetch(info, [
-        "name",
-        "repos",
-      ])
-    ) {
+    if (!shouldFetch(info, ["name", "repos"])) {
       return { name: org };
     }
     const result = await client().orgs.get({ org });
@@ -417,13 +403,11 @@ export const OrganizationCollection = {
     const res = await client().orgs.list(apiArgs);
 
     // TODO: Use the GraphQL API to avoid N+1 fetching
-    const includedKeys = [
-      "gref",
-    ];
+    const includedKeys = ["gref"];
     if (shouldFetchItems(info, includedKeys)) {
       const promises = res.data.map(async (org) => {
         const res = await client().orgs.get({
-          name: org.login,
+          org: org.login,
         });
         return res.data;
       });
@@ -437,11 +421,8 @@ export const OrganizationCollection = {
   },
 };
 
-
-
 export const Organization = {
   gref: (_, { self, obj }) => {
-    console.log(obj)
     return root.organizations.one({ name: obj.name });
   },
   repos: () => ({}),
@@ -469,7 +450,7 @@ export const Organization = {
       await removeWebhookOrg(org, "pull_request");
     },
   },
-}
+};
 
 export const Repository = {
   gref: (_, { self, obj }) => {
@@ -620,7 +601,9 @@ export const Repository = {
 export const IssueCollection = {
   async one(args, { self, info }) {
     const { name: owner } = self.$argsAt(root.users.one);
-    const { name: repo } = self.$argsAt(root.users.one({ name: owner }).repos.one);
+    const { name: repo } = self.$argsAt(
+      root.users.one({ name: owner }).repos.one
+    );
     const { number: issue_number } = args;
 
     if (!shouldFetch(info, ["number"])) {
@@ -976,7 +959,6 @@ export const BranchCollection = {
   async one(args, { self, info }) {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
-    console.log('branch',repo,owner)
     const { name: branch } = args;
     if (!shouldFetch(info, ["name"])) {
       return { name: branch };
@@ -1168,13 +1150,14 @@ export async function endpoint({ path, query, headers, method, body }) {
   switch (path) {
     case "/webhooks": {
       const event = JSON.parse(body);
-      // console.log("evenat",event)
       // Every webhook event has a repository object
       const repo: any = root.users
         .one({ name: event.repository.owner.login })
         .repos.one({ name: event.repository.name });
-      const org: any = root.organizations.one({ name: event.organization.login });
-      
+      const org: any = root.organizations.one({
+        name: event.organization.login,
+      });
+
       if (event.action === "opened" && event.issue) {
         const issue = repo.issues.one({ number: event.issue.number });
         await repo.issueOpened.$emit({ issue });
@@ -1325,18 +1308,19 @@ async function removeWebhook(owner: string, repo: string, event: string) {
 }
 
 async function ensureWebhookOrg(org: string, event: string) {
-  const webhookUrl = state.endpointUrl! + "/webhooks";  try {
-    // Check if the repository already has a webhook
+  const webhookUrl = state.endpointUrl! + "/webhooks";
+  try {
+    // Check if the organization already has a webhook
     const test_data = await client().orgs.get({ org });
     const { data: hooks } = await client().orgs.listWebhooks({ org });
     const webhook = hooks.find((hook) => hook.config.url === webhookUrl);
-    // If the repository already has a webhook, update it
+    // If the organization already has a webhook, update it
     if (webhook) {
       if (webhook.events.includes(event)) {
         console.log("Webhook already exists event", event);
       } else {
         const updatedEvents = [...webhook.events, event];
-        await client().repos.updateWebhook({
+        await client().orgs.updateWebhook({
           org,
           hook_id: webhook.id,
           config: {
@@ -1345,11 +1329,11 @@ async function ensureWebhookOrg(org: string, event: string) {
           },
           events: updatedEvents,
         });
-        // Update the events array in the repository object
+        // Update the events array in the organization object
         console.log("Webhook updated with new event.");
       }
     } else {
-      console.log("creating new webhook")
+      console.log("creating new webhook");
       // Create a new webhook
       const {
         data: { id: webhookId },
@@ -1371,11 +1355,10 @@ async function ensureWebhookOrg(org: string, event: string) {
   }
 }
 
-
 async function removeWebhookOrg(org: string, event: string) {
   const webhookUrl = state.endpointUrl! + "/webhooks";
   try {
-    // Check if the repository has a webhook
+    // Check if the organization has a webhook
     const { data: hooks } = await client().orgs.listWebhooks({ org });
     const webhook = hooks.find((hook) => hook.config.url === webhookUrl);
     // Update the webhook to remove the specified events
@@ -1387,14 +1370,14 @@ async function removeWebhookOrg(org: string, event: string) {
 
     // Delete the webhook if there are no more events
     if (updatedEvents.length === 0) {
-      await client().repos.deleteWebhook({
+      await client().orgs.deleteWebhook({
         org,
         hook_id: webhook.id,
       });
       console.log("Webhook deleted.");
       return;
     } else {
-      await client().repos.updateWebhook({
+      await client().orgs.updateWebhook({
         org,
         hook_id: webhook.id,
         config: {
@@ -1406,9 +1389,7 @@ async function removeWebhookOrg(org: string, event: string) {
       console.log(`Event '${event}' removed from webhook.`);
     }
   } catch (error) {
-    throw new Error(
-      `Error unregistering ${event} event for ${org}: ${error}`
-    );
+    throw new Error(`Error unregistering ${event} event for ${org}: ${error}`);
   }
 }
 
