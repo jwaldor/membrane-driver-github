@@ -2433,16 +2433,16 @@
             "name": "updated_at",
             "type": "String",
             "description": "The date when the organization's information was last updated."
-          },
-          {
-            "name": "reviewRequested",
-            "type": "PullRequestEvent"
           }
         ],
         "events": [
           {
             "name": "commentCreated",
             "type": "CommentEvent"
+          },
+          {
+            "name": "reviewRequested",
+            "type": "PullRequestEvent"
           }
         ]
       },
