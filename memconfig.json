@@ -2433,6 +2433,10 @@
             "name": "updated_at",
             "type": "String",
             "description": "The date when the organization's information was last updated."
+          },
+          {
+            "name": "reviewRequested",
+            "type": "PullRequestEvent"
           }
         ],
         "events": [
@@ -2474,10 +2478,6 @@
             "params": [
               {
                 "name": "name",
-                "type": "String"
-              },
-              {
-                "name": "blah",
                 "type": "String"
               }
             ]
