@@ -106,6 +106,10 @@
             "name": "tests",
             "type": "Tests",
             "description": "Tests"
+          },
+          {
+            "name": "organizations",
+            "type": "OrganizationCollection"
           }
         ],
         "actions": [
@@ -331,7 +335,8 @@
           }
         ],
         "events": [],
-        "description": "Collection of Github users"
+        "description": "Collection of Github users",
+        "actions": []
       },
       {
         "name": "RepositoryCollection",
@@ -1779,6 +1784,14 @@
             "name": "comments",
             "type": "CommentCollection",
             "description": "Collection of comments associated with the pull request"
+          },
+          {
+            "name": "pull_request_reviews",
+            "type": "PullRequestReviewCollection"
+          },
+          {
+            "name": "field1",
+            "type": "String"
           }
         ],
         "actions": [
@@ -2269,7 +2282,8 @@
             "ofType": "PullRequest"
           }
         ],
-        "description": "Type representing a pull request event."
+        "description": "Type representing a pull request event.",
+        "actions": []
       },
       {
         "name": "ReleaseEvent",
@@ -2345,6 +2359,285 @@
           }
         ],
         "description": "Collection of tests for the Github driver"
+      },
+      {
+        "name": "Organization",
+        "fields": [
+          {
+            "name": "repos",
+            "type": "RepositoryCollection"
+          },
+          {
+            "name": "login",
+            "type": "String",
+            "description": "The organization's login username."
+          },
+          {
+            "name": "id",
+            "type": "Int",
+            "description": "The unique identifier of the organization."
+          },
+          {
+            "name": "node_id",
+            "type": "String",
+            "description": "The node identifier for the organization."
+          },
+          {
+            "name": "url",
+            "type": "String",
+            "description": "The API URL for the organization."
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "description": "The description or bio of the organization."
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "description": "The organization's name."
+          },
+          {
+            "name": "company",
+            "type": "String",
+            "description": "The organization’s company name or affiliation."
+          },
+          {
+            "name": "blog",
+            "type": "String",
+            "description": "The URL to the organization's blog or website."
+          },
+          {
+            "name": "location",
+            "type": "String",
+            "description": "The organization's location."
+          },
+          {
+            "name": "email",
+            "type": "String",
+            "description": "The organization's public email address."
+          },
+          {
+            "name": "is_verified",
+            "type": "Boolean",
+            "description": "Whether the organization is verified by GitHub."
+          },
+          {
+            "name": "followers",
+            "type": "Int",
+            "description": "The number of users following the organization."
+          },
+          {
+            "name": "following",
+            "type": "Int",
+            "description": "The number of users the organization is following."
+          },
+          {
+            "name": "created_at",
+            "type": "String",
+            "description": "The creation date of the organization."
+          },
+          {
+            "name": "updated_at",
+            "type": "String",
+            "description": "The date when the organization's information was last updated."
+          }
+        ],
+        "events": [
+          {
+            "name": "commentCreated",
+            "type": "CommentEvent"
+          },
+          {
+            "name": "reviewRequested",
+            "type": "PullRequestEvent"
+          },
+          {
+            "name": "reviewCreated",
+            "type": "PullRequestReviewEvent"
+          }
+        ]
+      },
+      {
+        "name": "OrganizationCollection",
+        "fields": [
+          {
+            "name": "one",
+            "type": "Organization",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
+              }
+            ]
+          },
+          {
+            "name": "page",
+            "type": "OrganizationPage",
+            "params": [
+              {
+                "name": "since",
+                "type": "String",
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "name": "test",
+            "type": "Void",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "OrganizationPage"
+      },
+      {
+        "name": "PullRequestReviewEvent",
+        "fields": [
+          {
+            "name": "pullRequestReview",
+            "type": "Ref",
+            "ofType": "PullRequestReview"
+          }
+        ]
+      },
+      {
+        "name": "PullRequestReview",
+        "fields": [
+          {
+            "name": "author_association",
+            "type": "String",
+            "description": "Required. How the author is associated with the repository. Can be one of: COLLABORATOR, CONTRIBUTOR, FIRST_TIMER, FIRST_TIME_CONTRIBUTOR, MANNEQUIN, MEMBER, NONE, OWNER"
+          },
+          {
+            "name": "body",
+            "type": "String",
+            "description": "Required. The text of the review. Can be null."
+          },
+          {
+            "name": "commit_id",
+            "type": "String",
+            "description": "Required. A commit SHA for the review."
+          },
+          {
+            "name": "html_url",
+            "type": "String",
+            "description": "Required. The HTML URL of the review."
+          },
+          {
+            "name": "id",
+            "type": "Int",
+            "description": "Required. Unique identifier of the review."
+          },
+          {
+            "name": "node_id",
+            "type": "String",
+            "description": "Required. The node identifier for the review."
+          },
+          {
+            "name": "pull_request_url",
+            "type": "String",
+            "description": "Required. The URL of the associated pull request."
+          },
+          {
+            "name": "state",
+            "type": "String",
+            "description": "Required. The state of the review."
+          },
+          {
+            "name": "submitted_at",
+            "type": "String",
+            "description": "Required. The submission date of the review. Can be null."
+          },
+          {
+            "name": "user",
+            "type": "Ref",
+            "ofType": "User",
+            "description": "Required. The user who submitted the review. Can be null."
+          }
+        ]
+      },
+      {
+        "name": "PullRequestReviewCollection",
+        "fields": [
+          {
+            "name": "one",
+            "type": "PullRequestReview",
+            "params": [
+              {
+                "name": "id",
+                "type": "String"
+              }
+            ]
+          },
+          {
+            "name": "page",
+            "type": "String",
+            "params": [
+              {
+                "name": "state",
+                "type": "String",
+                "optional": true
+              },
+              {
+                "name": "head",
+                "type": "String",
+                "optional": true
+              },
+              {
+                "name": "base",
+                "type": "String",
+                "optional": true
+              },
+              {
+                "name": "sort",
+                "type": "String",
+                "optional": true
+              },
+              {
+                "name": "order",
+                "type": "String",
+                "optional": true
+              },
+              {
+                "name": "page",
+                "type": "Int",
+                "optional": true
+              },
+              {
+                "name": "pageSize",
+                "type": "Int",
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "PullRequestReviewPage",
+        "fields": [
+          {
+            "name": "items",
+            "type": "List",
+            "ofType": {
+              "type": "Ref",
+              "ofType": "PullRequestReview"
+            }
+          },
+          {
+            "name": "next",
+            "type": "Ref",
+            "ofType": "PullRequestPage"
+          }
+        ]
       }
     ]
   }
