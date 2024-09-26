@@ -1792,6 +1792,10 @@
           {
             "name": "url",
             "type": "String"
+          },
+          {
+            "name": "test_field",
+            "type": "String"
           }
         ],
         "actions": [
@@ -1841,6 +1845,10 @@
                 "optional": true
               }
             ]
+          },
+          {
+            "name": "action1",
+            "type": "Void"
           }
         ],
         "events": [
@@ -2636,7 +2644,12 @@
             "type": "String"
           }
         ],
-        "actions": []
+        "actions": [
+          {
+            "name": "action1",
+            "type": "Void"
+          }
+        ]
       },
       {
         "name": "PullRequestReviewPage",
@@ -2670,6 +2683,15 @@
             "name": "requester",
             "type": "Ref",
             "ofType": "User"
+          }
+        ]
+      },
+      {
+        "name": "TestType",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "String"
           }
         ]
       }
