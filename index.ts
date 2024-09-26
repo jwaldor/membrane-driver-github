@@ -108,7 +108,6 @@ function getSearchPageRefs(
 
 export const Root = {
   configure: async (args) => {
-    console.log("viewroot", root.organizations, root.users);
     if (args.token !== state.token) {
       console.log("Creating new Octokit client");
       state.token = args.token;
@@ -401,8 +400,6 @@ export const OrganizationCollection = {
   async page(args, { self, info }) {
     const apiArgs = toGithubArgs(args);
     const res = await client().orgs.list(apiArgs);
-    
-
 
     // TODO: Use the GraphQL API to avoid N+1 fetching
     const includedKeys = ["gref"];
@@ -425,7 +422,7 @@ export const OrganizationCollection = {
 
 export const Organization = {
   gref: (_, { self, obj }) => {
-    return root.organizations.one({ name: obj.name });
+    return root.organizations.one({ name: obj.login });
   },
   repos: () => ({}),
   commentCreated: {
@@ -1094,113 +1091,10 @@ export const PullRequest = {
       await removeWebhook(owner, repo, "pull_request");
     },
   },
-  pull_request_reviews: () => ({}),
-  async action1(){
-    // console.log("pullrequest/action1")
-    throw("pullrequest/action1")
-  }
-};
-
-// export const ReviewRequestCollection = {
-//   async one(args, { self }) {
-//     const { name: owner } = self.$argsAt(root.users.one);
-//     const { name: repo } = self.$argsAt(root.users.one.repos.one);
-
-//     const { number: pull_number } = args;
-//     const result = await client().pulls.get({ owner, repo, pull_number });
-//     return result.data;
-//   },
-
-//   async page(args, { self }) {
-//     const { name: owner } = self.$argsAt(root.users.one);
-//     const { name: repo } = self.$argsAt(root.users.one.repos.one);
-
-//     const apiArgs = toGithubArgs({ ...args, owner, repo });
-//     const res = await client().pulls.list(apiArgs);
-//     return {
-//       items: res.data,
-//       next: getPageRefs(self.page(args), res).next,
-//     };
-//   },
-// };
-
-// export const ReviewRequest = {
-//   gref: (_, { self, obj }) => {
-//     const { name: owner } = self.$argsAt(root.users.one);
-//     const { name: repo } = self.$argsAt(root.users.one.repos.one);
-//     const number = obj.number;
-//     return root.users
-//       .one({ name: owner })
-//       .repos.one({ name: repo })
-//       .pull_requests.one({ number });
-//   },
-//   requester(_, { obj }) {
-//     return root.users.one({ name: obj.login });
-//   },
-//   requester(_, { obj }) {
-//     return root.users.one({ name: obj.user.login });
-//   },
-// };
-
-export const PullRequestReviewCollection = {
-  async one(args, { self }) {
-    const { name: owner } = self.$argsAt(root.users.one);
-    const { name: repo } = self.$argsAt(root.users.one.repos.one);
-    const { number: pull_number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests.one
-    );
-    console.log("review collection", owner, repo, pull_number);
-
-    const { id: review_id } = args;
-    const result = await client().pulls.getReview({
-      owner,
-      repo,
-      pull_number,
-      review_id,
-    });
-    return result.data;
-  },
-
-  async page(args, { self }) {
-    const { name: owner } = self.$argsAt(root.users.one);
-    const { name: repo } = self.$argsAt(root.users.one.repos.one);
-    const { number: pull_number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests.one
-    );
-
-    const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
-    const res = await client().pulls.listReviews(apiArgs);
-    console.log(res.data, "res");
-    return {
-      items: res.data,
-      next: getPageRefs(self.page(args), res).next,
-    };
-  },
-  async test() {
-    console.log("test");
-  },
-  async action1() {
-    throw("hi");
-    // console.log("action");
-  },
-};
-
-export const PullRequestReview = {
-  gref: (_, { self, obj }) => {
-    const { name: owner } = self.$argsAt(root.users.one);
-    const { name: repo } = self.$argsAt(root.users.one.repos.one);
-    const { name: number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests.one
-    );
-    return root.users
-      .one({ name: owner })
-      .repos.one({ name: repo })
-      .pull_requests.one({ number })
-      .pull_request_reviews.one({ id: obj.id });
-  },
-  user(_, { obj }) {
+  requested_user_reviewers(_, { obj }) {
     return root.users.one({ name: obj.user.login });
   },
+  pull_request_reviews: () => ({}),
 };
 
 export const PullRequestReviewCollection = {
@@ -1208,9 +1102,8 @@ export const PullRequestReviewCollection = {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
     const { number: pull_number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests
+      root.users.one.repos.one.pull_requests.one
     );
-    console.log("review collection", owner, repo, pull_number);
 
     const { id: review_id } = args;
     const result = await client().pulls.getReview({
@@ -1223,28 +1116,38 @@ export const PullRequestReviewCollection = {
   },
 
   async page(args, { self }) {
-    console.log("hello pullrequestreviewcollection");
-
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
     const { number: pull_number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests
+      root.users.one.repos.one.pull_requests.one
     );
 
     const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
     const res = await client().pulls.listReviews(apiArgs);
-    console.log(res.data, "res");
     return {
       items: res.data,
       next: getPageRefs(self.page(args), res).next,
     };
   },
-  async test() {
-    console.log("test");
+};
+
+export const ReviewRequestsUsers = {
+  async all(_, { self, info }) {
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { number: pull_number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests.one
+    );
+    const res = await client().pulls.listRequestedReviewers({
+      owner,
+      repo,
+      pull_number,
+    });
+
+    return {
+      items: res.data.users,
+    };
   },
-  // async action1() {
-  //   console.log("action");
-  // },
 };
 
 export const PullRequestReview = {
@@ -1252,9 +1155,8 @@ export const PullRequestReview = {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
     const { name: number } = self.$argsAt(
-      root.users.one.repos.one.pull_requests
+      root.users.one.repos.one.pull_requests.one
     );
-    console.log("obj", obj);
     return root.users
       .one({ name: owner })
       .repos.one({ name: repo })
@@ -1373,22 +1275,26 @@ export async function endpoint({ path, query, headers, method, body }) {
         const requester = root.users.one({
           name: event.sender.login,
         });
-        console.log("pull_request")
-        // console.log(event.pull_request)
-        console.log("number",event.pull_request.number)
-        console.log("repository",event.repository)
-        const pullRequest = root.users.one({
-          name: event.repository.owner.login,
-        }).repos.one({name: event.repository.name}).pull_requests.one({number: event.pull_request.number});
-        console.log("pullRequest",pullRequest);
-        await org.reviewRequested.$emit({ requester, pullRequest, requestedReviewer });
+        const pullRequest = root.users
+          .one({
+            name: event.repository.owner.login,
+          })
+          .repos.one({ name: event.repository.name })
+          .pull_requests.one({ number: event.pull_request.number });
+        await org.reviewRequested.$emit({
+          requester,
+          pullRequest,
+          requestedReviewer,
+        });
       }
 
       if (event.action === "submitted" && event.pull_request_review) {
-        const pullRequest = repo.pull_request.one({
-          number: event.pull_request.number,
-        });
-        await org.reviewCreated.$emit({ pullRequest, repo });
+        const pullRequestReview = repo.pull_request
+          .one({
+            number: event.pull_request.number,
+          })
+          .pull_request_reviews.one({ id: event.review.id });
+        await org.reviewCreated.$emit({ pullRequestReview });
       }
 
       if (event.action === "created" && event.comment) {

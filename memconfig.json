@@ -1786,16 +1786,20 @@
             "description": "Collection of comments associated with the pull request"
           },
           {
-            "name": "pull_request_reviews",
-            "type": "PullRequestReviewCollection"
-          },
-          {
             "name": "url",
             "type": "String"
           },
           {
             "name": "test_field",
             "type": "String"
+          },
+          {
+            "name": "pull_request_reviews",
+            "type": "PullRequestReviewCollection"
+          },
+          {
+            "name": "requested_user_reviewers",
+            "type": "ReviewRequestsUsers"
           }
         ],
         "actions": [
@@ -2470,16 +2474,6 @@
         "name": "OrganizationCollection",
         "fields": [
           {
-            "name": "one",
-            "type": "Organization",
-            "params": [
-              {
-                "name": "name",
-                "type": "String"
-              }
-            ]
-          },
-          {
             "name": "page",
             "type": "OrganizationPage",
             "params": [
@@ -2487,6 +2481,16 @@
                 "name": "since",
                 "type": "String",
                 "optional": true
+              }
+            ]
+          },
+          {
+            "name": "one",
+            "type": "Organization",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
               }
             ]
           }
@@ -2694,6 +2698,28 @@
             "type": "String"
           }
         ]
+      },
+      {
+        "name": "ReviewRequestsPage",
+        "fields": [
+          {
+            "name": "items",
+            "type": "List",
+            "ofType": "User"
+          }
+        ]
+      },
+      {
+        "name": "ReviewRequestsUsers",
+        "fields": [
+          {
+            "name": "all",
+            "type": "ReviewRequestsPage"
+          }
+        ]
+      },
+      {
+        "name": "ReviewRequests"
       }
     ]
   }
