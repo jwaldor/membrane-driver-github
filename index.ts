@@ -1203,6 +1203,69 @@ export const PullRequestReview = {
   },
 };
 
+export const PullRequestReviewCollection = {
+  async one(args, { self }) {
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { number: pull_number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests
+    );
+    console.log("review collection", owner, repo, pull_number);
+
+    const { id: review_id } = args;
+    const result = await client().pulls.getReview({
+      owner,
+      repo,
+      pull_number,
+      review_id,
+    });
+    return result.data;
+  },
+
+  async page(args, { self }) {
+    console.log("hello pullrequestreviewcollection");
+
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { number: pull_number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests
+    );
+
+    const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
+    const res = await client().pulls.listReviews(apiArgs);
+    console.log(res.data, "res");
+    return {
+      items: res.data,
+      next: getPageRefs(self.page(args), res).next,
+    };
+  },
+  async test() {
+    console.log("test");
+  },
+  // async action1() {
+  //   console.log("action");
+  // },
+};
+
+export const PullRequestReview = {
+  gref: (_, { self, obj }) => {
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { name: number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests
+    );
+    console.log("obj", obj);
+    return root.users
+      .one({ name: owner })
+      .repos.one({ name: repo })
+      .pull_requests.one({ number })
+      .pull_request_reviews.one({ id: obj.id });
+  },
+  user(_, { obj }) {
+    return root.users.one({ name: obj.user.login });
+  },
+};
+
 export const ReleaseCollection = {
   async one(args, { self, obj }) {
     const { name: owner } = self.$argsAt(root.users.one);
