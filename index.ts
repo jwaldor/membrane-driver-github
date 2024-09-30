@@ -1106,6 +1106,7 @@ export const PullRequestReviewCollection = {
     );
 
     const { id: review_id } = args;
+    console.log(review_id, "review_id");
     const result = await client().pulls.getReview({
       owner,
       repo,
@@ -1124,6 +1125,7 @@ export const PullRequestReviewCollection = {
 
     const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
     const res = await client().pulls.listReviews(apiArgs);
+    console.log("page", res.data);
     return {
       items: res.data,
       next: getPageRefs(self.page(args), res).next,
@@ -1157,11 +1159,12 @@ export const PullRequestReview = {
     const { name: number } = self.$argsAt(
       root.users.one.repos.one.pull_requests.one
     );
+
     return root.users
       .one({ name: owner })
       .repos.one({ name: repo })
       .pull_requests.one({ number })
-      .pull_request_reviews.one({ id: obj.id });
+      .pull_request_reviews.one({ id: String(obj.id) });
   },
   user(_, { obj }) {
     return root.users.one({ name: obj.user.login });
