@@ -1011,7 +1011,6 @@ export const PullRequestCollection = {
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
 
     const { number: pull_number } = args;
-    console.log('pull_number',pull_number)
     const result = await client().pulls.get({ owner, repo, pull_number });
     return result.data;
   },
@@ -1105,10 +1104,8 @@ export const PullRequestReviewCollection = {
     const { number: pull_number } = self.$argsAt(
       root.users.one.repos.one.pull_requests.one
     );
-    console.log("here prrcoll")
 
     const { id: review_id } = args;
-    console.log(review_id, "review_id");
     const result = await client().pulls.getReview({
       owner,
       repo,
@@ -1127,7 +1124,6 @@ export const PullRequestReviewCollection = {
 
     const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
     const res = await client().pulls.listReviews(apiArgs);
-    console.log("page", res.data);
     return {
       items: res.data,
       next: getPageRefs(self.page(args), res).next,
@@ -1135,7 +1131,31 @@ export const PullRequestReviewCollection = {
   },
 };
 
-export const ReviewRequestsUsers = {
+const getReviewTime = async (request_identifier: {
+  owner,
+  repo,
+  issue_number, // PRs are treated as issues in this context
+},login) => {
+  const events = await client().issues.listEventsForTimeline(request_identifier);
+
+  // Find the event where a review was requested from the user
+  const reviewRequestedEvent = events.data.find(
+    (event) => event.event === 'review_requested' && event.requested_reviewer?.login === login
+  );
+
+
+  // Extract the timestamp if the event exists
+  if (reviewRequestedEvent) {
+    const time = reviewRequestedEvent.created_at;
+    console.log(`Review requested at: ${time}`);
+    return time;
+  } else {
+    console.log('No review request found for this user.');
+  }
+
+}
+
+export const ReviewRequestsUsersCollection = {
   async all(_, { self, info }) {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
@@ -1148,9 +1168,70 @@ export const ReviewRequestsUsers = {
       pull_number,
     });
 
+    const requests = await Promise.all(res.data.users.map(async (user) => {
+      return ({user: user.login, time: await getReviewTime({owner,repo,issue_number:pull_number},user.login)})}));
     return {
       items: res.data.users,
+      requests: requests
     };
+  },
+  async one(args, { self, info }) {
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { number: pull_number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests.one
+    );
+
+
+    // Get the timeline events for the pull request
+    const events = await client().issues.listEventsForTimeline({
+      owner,
+      repo,
+      issue_number: pull_number, // PRs are treated as issues in this context
+    });
+
+    // Find the event where a review was requested from the user
+    const reviewRequestedEvent = events.data.find(
+      (event) => event.event === 'review_requested' && event.requested_reviewer?.login === args.name
+    );
+
+
+    // Extract the timestamp if the event exists
+    if (reviewRequestedEvent) {
+      const time = reviewRequestedEvent.created_at;
+    }
+
+    console.log("one",{
+      user:args.name,
+      time: reviewRequestedEvent?.created_at
+    })
+
+    return {
+      user:args.name,
+      time: reviewRequestedEvent?.created_at
+    };
+  }
+};
+
+export const ReviewRequest = {
+  gref: (_, { self, obj }) => {
+    const { name: owner } = self.$argsAt(root.users.one);
+    const { name: repo } = self.$argsAt(root.users.one.repos.one);
+    const { number } = self.$argsAt(
+      root.users.one.repos.one.pull_requests.one
+    );
+
+    const reviewer = obj.user
+
+    return root.users
+      .one({ name: owner })
+      .repos.one({ name: repo })
+      .pull_requests.one({ number })
+      .requested_user_reviewers.one({ name: reviewer});
+  },
+  user(_, { obj }) {
+    // console.log("name",obj);
+    return root.users.one({ name: obj.user });
   },
 };
 
