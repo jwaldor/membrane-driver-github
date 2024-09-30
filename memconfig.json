@@ -2642,18 +2642,9 @@
                 "optional": true
               }
             ]
-          },
-          {
-            "name": "test",
-            "type": "String"
           }
         ],
-        "actions": [
-          {
-            "name": "action1",
-            "type": "Void"
-          }
-        ]
+        "actions": []
       },
       {
         "name": "PullRequestReviewPage",
