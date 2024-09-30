@@ -1788,12 +1788,16 @@
           {
             "name": "url",
             "type": "String",
-            "hints": {"format":"url"}
+            "hints": {
+              "format": "url"
+            }
           },
           {
             "name": "html_url",
             "type": "String",
-            "hints": {"format":"url"}
+            "hints": {
+              "format": "url"
+            }
           },
           {
             "name": "test_field",
@@ -2582,7 +2586,7 @@
             "type": "String",
             "description": "Required. The state of the review.",
             "hints": {
-              "primary":true
+              "primary": true
             }
           },
           {
@@ -2595,7 +2599,7 @@
             "type": "Ref",
             "ofType": "User",
             "hints": {
-              "secondary":true
+              "secondary": true
             },
             "description": "Required. The user who submitted the review. Can be null."
           }
@@ -2708,12 +2712,12 @@
           {
             "name": "items",
             "type": "List",
-            "ofType": "User"
+            "ofType": "ReviewRequest"
           },
           {
-            "name": "requests",
-            "type": "List",
-            "ofType": "ReviewRequest"
+            "name": "next",
+            "type": "Ref",
+            "ofType": "ReviewRequestsPage"
           }
         ]
       },
@@ -2721,7 +2725,7 @@
         "name": "ReviewRequestsUsersCollection",
         "fields": [
           {
-            "name": "all",
+            "name": "page",
             "type": "ReviewRequestsPage"
           },
           {
@@ -2742,11 +2746,14 @@
           {
             "name": "user",
             "type": "Ref",
-            "ofType": "User"
+            "ofType": "User",
+            "hints": {"primary":true}
+
           },
           {
             "name": "time",
-            "type": "String"
+            "type": "String",
+            "hints": {"secondary":true}
           }
         ]
       }

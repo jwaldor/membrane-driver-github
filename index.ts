@@ -1156,7 +1156,7 @@ const getReviewTime = async (request_identifier: {
 }
 
 export const ReviewRequestsUsersCollection = {
-  async all(_, { self, info }) {
+  async page(_, { self, info }) {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
     const { number: pull_number } = self.$argsAt(
@@ -1171,8 +1171,8 @@ export const ReviewRequestsUsersCollection = {
     const requests = await Promise.all(res.data.users.map(async (user) => {
       return ({user: user.login, time: await getReviewTime({owner,repo,issue_number:pull_number},user.login)})}));
     return {
-      items: res.data.users,
-      requests: requests
+      items: requests,
+      next: getPageRefs(self.page(), res).next,
     };
   },
   async one(args, { self, info }) {
