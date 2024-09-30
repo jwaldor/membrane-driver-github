@@ -1011,6 +1011,7 @@ export const PullRequestCollection = {
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
 
     const { number: pull_number } = args;
+    console.log('pull_number',pull_number)
     const result = await client().pulls.get({ owner, repo, pull_number });
     return result.data;
   },
@@ -1104,8 +1105,10 @@ export const PullRequestReviewCollection = {
     const { number: pull_number } = self.$argsAt(
       root.users.one.repos.one.pull_requests.one
     );
+    console.log("here prrcoll")
 
     const { id: review_id } = args;
+    console.log(review_id, "review_id");
     const result = await client().pulls.getReview({
       owner,
       repo,
@@ -1124,6 +1127,7 @@ export const PullRequestReviewCollection = {
 
     const apiArgs = toGithubArgs({ ...args, owner, repo, pull_number });
     const res = await client().pulls.listReviews(apiArgs);
+    console.log("page", res.data);
     return {
       items: res.data,
       next: getPageRefs(self.page(args), res).next,
@@ -1154,14 +1158,15 @@ export const PullRequestReview = {
   gref: (_, { self, obj }) => {
     const { name: owner } = self.$argsAt(root.users.one);
     const { name: repo } = self.$argsAt(root.users.one.repos.one);
-    const { name: number } = self.$argsAt(
+    const { number } = self.$argsAt(
       root.users.one.repos.one.pull_requests.one
     );
+
     return root.users
       .one({ name: owner })
       .repos.one({ name: repo })
       .pull_requests.one({ number })
-      .pull_request_reviews.one({ id: obj.id });
+      .pull_request_reviews.one({ id: String(obj.id) });
   },
   user(_, { obj }) {
     return root.users.one({ name: obj.user.login });
