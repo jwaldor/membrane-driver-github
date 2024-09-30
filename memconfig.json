@@ -1787,7 +1787,13 @@
           },
           {
             "name": "url",
-            "type": "String"
+            "type": "String",
+            "hints": {"format":"url"}
+          },
+          {
+            "name": "html_url",
+            "type": "String",
+            "hints": {"format":"url"}
           },
           {
             "name": "test_field",
@@ -1799,7 +1805,7 @@
           },
           {
             "name": "requested_user_reviewers",
-            "type": "ReviewRequestsUsers"
+            "type": "ReviewRequestsUsersCollection"
           }
         ],
         "actions": [
@@ -2574,7 +2580,10 @@
           {
             "name": "state",
             "type": "String",
-            "description": "Required. The state of the review."
+            "description": "Required. The state of the review.",
+            "hints": {
+              "primary":true
+            }
           },
           {
             "name": "submitted_at",
@@ -2585,6 +2594,9 @@
             "name": "user",
             "type": "Ref",
             "ofType": "User",
+            "hints": {
+              "secondary":true
+            },
             "description": "Required. The user who submitted the review. Can be null."
           }
         ]
@@ -2697,20 +2709,46 @@
             "name": "items",
             "type": "List",
             "ofType": "User"
+          },
+          {
+            "name": "requests",
+            "type": "List",
+            "ofType": "ReviewRequest"
           }
         ]
       },
       {
-        "name": "ReviewRequestsUsers",
+        "name": "ReviewRequestsUsersCollection",
         "fields": [
           {
             "name": "all",
             "type": "ReviewRequestsPage"
+          },
+          {
+            "name": "one",
+            "type": "ReviewRequest",
+            "params": [
+              {
+                "name": "name",
+                "type": "String"
+              }
+            ]
           }
         ]
       },
       {
-        "name": "ReviewRequests"
+        "name": "ReviewRequest",
+        "fields": [
+          {
+            "name": "user",
+            "type": "Ref",
+            "ofType": "User"
+          },
+          {
+            "name": "time",
+            "type": "String"
+          }
+        ]
       }
     ]
   }
